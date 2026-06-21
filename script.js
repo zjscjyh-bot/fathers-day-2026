@@ -210,82 +210,78 @@
     const lockCx = lockRect.left + lockRect.width / 2;
     const lockCy = lockRect.top + lockRect.height / 2;
 
+    // 钥匙齿尖对准锁孔（钥匙整体偏移，让齿端落入锁孔）
     const dx = lockCx - keyCx;
     const dy = lockCy - keyCy;
 
     key.classList.add('is-flying');
     const svg = key.querySelector('.key__svg');
     const aura = key.querySelector('.key__aura');
+    const label = key.querySelector('.key__label');
 
-    // 飞行
-    svg.style.transition = 'transform 0.7s cubic-bezier(0.5, 0, 0.5, 1), filter 0.7s';
-    svg.style.transform = `translate(${dx}px, ${dy}px) scale(0.5) rotate(0deg)`;
-    aura.style.transition = 'opacity 0.4s';
+    // 飞行：钥匙飞向锁孔，缩小并摆正
+    svg.style.transition = 'transform 0.8s cubic-bezier(0.5, 0, 0.5, 1), filter 0.8s';
+    svg.style.transform = `translate(${dx}px, ${dy}px) scale(0.55) rotate(0deg)`;
+    aura.style.transition = 'opacity 0.5s';
     aura.style.opacity = '0';
+    label.style.transition = 'opacity 0.4s';
+    label.style.opacity = '0';
 
     // 3. 到达后旋转解锁
     setTimeout(() => {
-      svg.style.transition = 'transform 0.35s ease-in-out';
-      svg.style.transform = `translate(${dx}px, ${dy}px) scale(0.5) rotate(90deg)`;
-    }, 700);
+      svg.style.transition = 'transform 0.4s ease-in-out';
+      svg.style.transform = `translate(${dx}px, ${dy}px) scale(0.55) rotate(90deg)`;
+    }, 800);
 
-    // 4. 锁孔发光 + 闪光
+    // 4. 锁孔发光 + 小爆发
     setTimeout(() => {
       lock.classList.add('is-unlocked');
-      // 锁孔位置小爆发
-      burstAt(lockCx, lockCy, 16, { minSpeed: 1.5, maxSpeed: 4, gravity: 0.05 });
-    }, 1050);
+      burstAt(lockCx, lockCy, 18, { minSpeed: 1.5, maxSpeed: 4, gravity: 0.05 });
+    }, 1200);
 
     // 5. 钥匙淡出
     setTimeout(() => {
-      key.style.transition = 'opacity 0.4s';
+      key.style.transition = 'opacity 0.5s';
       key.style.opacity = '0';
-    }, 1150);
+    }, 1300);
 
     // 6. 贺卡翻开 + 大特效
     setTimeout(() => {
       card.classList.add('is-open');
 
-      // 贺卡中心
       const cardRect = cardEl.getBoundingClientRect();
       const cx = cardRect.left + cardRect.width / 2;
       const cy = cardRect.top + cardRect.height / 2;
 
       // 闪光
       flash.classList.add('is-active');
-      setTimeout(() => flash.classList.remove('is-active'), 800);
+      setTimeout(() => flash.classList.remove('is-active'), 900);
 
       // 光线放射
       rays.classList.add('is-active');
-      setTimeout(() => rays.classList.remove('is-active'), 1700);
+      setTimeout(() => rays.classList.remove('is-active'), 1800);
 
       // 主爆发：从贺卡中心向四周
-      burstAt(cx, cy, 50, { minSpeed: 3, maxSpeed: 9, gravity: 0.05 });
+      burstAt(cx, cy, 60, { minSpeed: 3, maxSpeed: 10, gravity: 0.05 });
 
       // 二次爆发（稍迟）
       setTimeout(() => {
-        burstAt(cx, cy, 30, { minSpeed: 2, maxSpeed: 6, gravity: 0.04 });
-      }, 250);
+        burstAt(cx, cy, 35, { minSpeed: 2, maxSpeed: 7, gravity: 0.04 });
+      }, 300);
 
-      // 烟花（左右各一）
-      setTimeout(() => {
-        fireworkAt(cx - 140, cy - 60);
-      }, 400);
-      setTimeout(() => {
-        fireworkAt(cx + 140, cy - 60);
-      }, 550);
-      setTimeout(() => {
-        fireworkAt(cx, cy - 120);
-      }, 750);
+      // 烟花（左右各一 + 顶部）
+      setTimeout(() => fireworkAt(cx - 150, cy - 80), 450);
+      setTimeout(() => fireworkAt(cx + 150, cy - 80), 600);
+      setTimeout(() => fireworkAt(cx, cy - 140), 800);
 
       // 持续小喷发
       let pulseCount = 0;
       const pulseTimer = setInterval(() => {
-        burstAt(cx, cy, 12, { minSpeed: 1.5, maxSpeed: 4, gravity: 0.05 });
+        burstAt(cx, cy, 14, { minSpeed: 1.5, maxSpeed: 4, gravity: 0.05 });
         pulseCount++;
-        if (pulseCount >= 4) clearInterval(pulseTimer);
-      }, 400);
-    }, 1300);
+        if (pulseCount >= 5) clearInterval(pulseTimer);
+      }, 450);
+    }, 1450);
   }
 
   // --------------------------------------------

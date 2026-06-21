@@ -25,7 +25,7 @@
 <div class="bg-sun"></div>
 <div class="bg-rings"><span></span><span></span><span></span><span></span><span></span></div>
 
-<!-- 开卡光线放射 -->
+<!-- 开卡光线放射 + 闪光 -->
 <div class="rays" id="rays"></div>
 <div class="flash" id="flash"></div>
 
@@ -47,25 +47,24 @@
 
   <!-- 贺卡 -->
   <div class="card" id="card">
-    <!-- 下半（固定 · 内页，合上时被遮挡） -->
-    <div class="card__bottom">
-      <div class="card__inside">
-        <p class="card__inside-eyebrow">2026 · 六月第三个星期日</p>
-        <h1 class="card__title" id="cardTitle">
-          <span class="title__char" style="--i:0">父</span>
-          <span class="title__char" style="--i:1">亲</span>
-          <span class="title__char" style="--i:2">节</span>
-          <span class="title__char title__char--accent" style="--i:3">快</span>
-          <span class="title__char" style="--i:4">乐</span>
-        </h1>
-        <div class="card__underline"><span></span><i></i><span></span></div>
-        <p class="card__inside-foot">— 2026.06.21 —</p>
-      </div>
+
+    <!-- 内页（始终在底层，翻开后露出） -->
+    <div class="card__inside">
+      <p class="card__inside-eyebrow" id="insideEyebrow">2026 · 六月第三个星期日</p>
+      <h1 class="card__title" id="cardTitle">
+        <span class="title__char" style="--i:0">父</span>
+        <span class="title__char" style="--i:1">亲</span>
+        <span class="title__char" style="--i:2">节</span>
+        <span class="title__char title__char--accent" style="--i:3">快</span>
+        <span class="title__char" style="--i:4">乐</span>
+      </h1>
+      <div class="card__underline" id="cardUnderline"><span></span><i></i><span></span></div>
+      <p class="card__inside-foot" id="insideFoot">— 2026.06.21 —</p>
     </div>
 
-    <!-- 上半（翻开） -->
+    <!-- 上半封面（翻开） -->
     <div class="card__top" id="cardTop">
-      <!-- 封面（合上时朝外） -->
+      <!-- 封面正面（合上时朝外） -->
       <div class="card__cover">
         <div class="card__cover-frame"></div>
         <p class="card__cover-eyebrow">TO · FATHER</p>
@@ -90,13 +89,19 @@
   <!-- 钥匙 -->
   <button class="key" id="key" type="button" aria-label="打开贺卡">
     <span class="key__aura"></span>
-    <svg class="key__svg" viewBox="0 0 120 60" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="22" cy="30" r="15" fill="none" stroke="currentColor" stroke-width="4"/>
-      <circle cx="22" cy="30" r="5" fill="currentColor"/>
-      <line x1="37" y1="30" x2="105" y2="30" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-      <line x1="92" y1="30" x2="92" y2="44" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-      <line x1="102" y1="30" x2="102" y2="40" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+    <svg class="key__svg" viewBox="0 0 140 70" xmlns="http://www.w3.org/2000/svg">
+      <!-- 钥匙环 -->
+      <circle cx="28" cy="35" r="20" fill="none" stroke="currentColor" stroke-width="5"/>
+      <circle cx="28" cy="35" r="7" fill="currentColor"/>
+      <!-- 钥匙杆 -->
+      <line x1="48" y1="35" x2="125" y2="35" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+      <!-- 齿 -->
+      <line x1="108" y1="35" x2="108" y2="52" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+      <line x1="120" y1="35" x2="120" y2="48" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+      <!-- 装饰小球 -->
+      <circle cx="48" cy="35" r="3" fill="currentColor"/>
     </svg>
+    <span class="key__label">KEY</span>
   </button>
 
 </section>

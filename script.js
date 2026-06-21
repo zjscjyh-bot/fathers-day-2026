@@ -94,10 +94,10 @@
   // 控制台彩蛋
   console.log(
     '%c爸，节日快乐。',
-    'font-size: 24px; font-weight: bold; color: #b54a2a; font-family: serif; padding: 8px;'
+    'font-size: 20px; font-weight: bold; color: #b54a2a; font-family: serif; padding: 8px;'
   );
   console.log(
-    '%c这是一封写在代码里的信。如果你看到了，记得回家吃饭。',
-    'font-size: 13px; color: #8a3217; font-family: serif; padding: 4px;'
+    '%c就这一句，别的也不说了。',
+    'font-size: 12px; color: #8a3217; font-family: serif; padding: 4px;'
   );
 })();

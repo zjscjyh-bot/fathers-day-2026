@@ -1,5 +1,5 @@
 // ============================================
-// 父亲节快乐 · 2026 · 交互与特效
+// 父亲节快乐 · 2026 · 贺卡版交互
 // ============================================
 
 (function () {
@@ -9,69 +9,51 @@
   const isFinePointer = window.matchMedia('(pointer: fine)').matches;
 
   // --------------------------------------------
-  // 1. 鼠标光晕跟随
+  // 鼠标光晕
   // --------------------------------------------
   const glow = document.getElementById('cursorGlow');
   if (glow && isFinePointer && !reduceMotion) {
-    let mx = window.innerWidth / 2;
-    let my = window.innerHeight / 2;
-    let gx = mx;
-    let gy = my;
+    let mx = innerWidth / 2, my = innerHeight / 2;
+    let gx = mx, gy = my;
     let active = false;
-
-    window.addEventListener('mousemove', (e) => {
-      mx = e.clientX;
-      my = e.clientY;
-      if (!active) {
-        active = true;
-        glow.style.opacity = '1';
-      }
+    addEventListener('mousemove', (e) => {
+      mx = e.clientX; my = e.clientY;
+      if (!active) { active = true; glow.style.opacity = '1'; }
     });
-
-    window.addEventListener('mouseleave', () => {
-      glow.style.opacity = '0';
-      active = false;
-    });
-
-    function tickGlow() {
-      gx += (mx - gx) * 0.15;
-      gy += (my - gy) * 0.15;
+    addEventListener('mouseleave', () => { glow.style.opacity = '0'; active = false; });
+    (function tick() {
+      gx += (mx - gx) * 0.15; gy += (my - gy) * 0.15;
       glow.style.transform = `translate(${gx}px, ${gy}px) translate(-50%, -50%)`;
-      requestAnimationFrame(tickGlow);
-    }
-    tickGlow();
+      requestAnimationFrame(tick);
+    })();
   }
 
   // --------------------------------------------
-  // 2. 粒子系统：飘升的光点
+  // 粒子系统（统一：飘升光点 + 爆发粒子）
   // --------------------------------------------
   const canvas = document.getElementById('particles');
   const ctx = canvas.getContext('2d');
-  let W = 0;
-  let H = 0;
-  let particles = [];
-  const PARTICLE_COUNT = window.innerWidth < 768 ? 35 : 70;
+  let W = 0, H = 0, particles = [];
+  const FLOAT_COUNT = innerWidth < 768 ? 30 : 55;
+
+  const COLORS = [
+    'rgba(212, 160, 23, ',
+    'rgba(200, 118, 26, ',
+    'rgba(181, 74, 42, ',
+    'rgba(245, 222, 179, '
+  ];
 
   function resize() {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    W = window.innerWidth;
-    H = window.innerHeight;
-    canvas.width = W * dpr;
-    canvas.height = H * dpr;
-    canvas.style.width = W + 'px';
-    canvas.style.height = H + 'px';
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    W = innerWidth; H = innerHeight;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
-  const COLORS = [
-    'rgba(212, 160, 23, ', // gold
-    'rgba(200, 118, 26, ', // amber
-    'rgba(181, 74, 42, ',  // terracotta
-    'rgba(245, 222, 179, ' // cornsilk
-  ];
-
-  function spawn(initial) {
+  function spawnFloat(initial) {
     return {
+      type: 'float',
       x: Math.random() * W,
       y: initial ? Math.random() * H : H + 20,
       r: Math.random() * 2.2 + 0.6,
@@ -82,169 +64,247 @@
       color: COLORS[Math.floor(Math.random() * COLORS.length)],
       alpha: Math.random() * 0.5 + 0.2,
       twinkle: Math.random() * Math.PI * 2,
-      twinkleSpeed: Math.random() * 0.04 + 0.01
+      twinkleSpeed: Math.random() * 0.04 + 0.01,
+      gravity: 0,
+      decay: 0
     };
   }
 
-  function initParticles() {
-    particles = [];
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      particles.push(spawn(true));
-    }
+  function spawnBurst(x, y, opts) {
+    const angle = opts.angle != null ? opts.angle : Math.random() * Math.PI * 2;
+    const speed = opts.minSpeed + Math.random() * (opts.maxSpeed - opts.minSpeed);
+    return {
+      type: 'burst',
+      x: x, y: y,
+      r: Math.random() * (opts.maxR || 3) + (opts.minR || 1),
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - (opts.upBias || 0),
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      alpha: 1,
+      decay: Math.random() * 0.012 + 0.006,
+      gravity: opts.gravity != null ? opts.gravity : 0.08,
+      sway: 0, swaySpeed: 0,
+      twinkle: 0, twinkleSpeed: 0
+    };
   }
 
-  function drawParticles() {
+  function initFloat() {
+    particles = particles.filter(p => p.type === 'burst');
+    for (let i = 0; i < FLOAT_COUNT; i++) particles.push(spawnFloat(true));
+  }
+
+  function draw() {
     ctx.clearRect(0, 0, W, H);
-    for (let i = 0; i < particles.length; i++) {
+    for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i];
-      p.sway += p.swaySpeed;
-      p.twinkle += p.twinkleSpeed;
-      p.x += p.vx + Math.sin(p.sway) * 0.3;
-      p.y += p.vy;
 
-      // 回收
-      if (p.y < -20 || p.x < -20 || p.x > W + 20) {
-        particles[i] = spawn(false);
-        continue;
+      if (p.type === 'float') {
+        p.sway += p.swaySpeed;
+        p.twinkle += p.twinkleSpeed;
+        p.x += p.vx + Math.sin(p.sway) * 0.3;
+        p.y += p.vy;
+        if (p.y < -20 || p.x < -20 || p.x > W + 20) {
+          particles[i] = spawnFloat(false);
+          continue;
+        }
+        const flicker = (Math.sin(p.twinkle) + 1) * 0.5;
+        const a = p.alpha * (0.5 + flicker * 0.5);
+        drawGlow(p.x, p.y, p.r, p.color, a);
+      } else {
+        p.vy += p.gravity;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.alpha -= p.decay;
+        if (p.alpha <= 0 || p.y > H + 40) {
+          particles.splice(i, 1);
+          continue;
+        }
+        drawGlow(p.x, p.y, p.r, p.color, Math.max(0, p.alpha));
       }
-
-      const flicker = (Math.sin(p.twinkle) + 1) * 0.5;
-      const a = p.alpha * (0.5 + flicker * 0.5);
-
-      // 光晕
-      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 4);
-      grad.addColorStop(0, p.color + a + ')');
-      grad.addColorStop(1, p.color + '0)');
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r * 4, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 核心点
-      ctx.fillStyle = p.color + Math.min(1, a + 0.3) + ')';
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fill();
     }
-    requestAnimationFrame(drawParticles);
+    requestAnimationFrame(draw);
+  }
+
+  function drawGlow(x, y, r, color, a) {
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, r * 4);
+    grad.addColorStop(0, color + a + ')');
+    grad.addColorStop(1, color + '0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, r * 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = color + Math.min(1, a + 0.3) + ')';
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   if (!reduceMotion) {
-    resize();
-    initParticles();
-    drawParticles();
-    window.addEventListener('resize', () => {
-      resize();
-      initParticles();
-    });
+    resize(); initFloat(); draw();
+    addEventListener('resize', () => { resize(); initFloat(); });
   }
 
   // --------------------------------------------
-  // 3. 点击产生波纹 + 粒子爆发
+  // 爆发：从某点向四周喷射粒子
   // --------------------------------------------
-  function burstAt(x, y) {
-    if (reduceMotion) return;
-    const ripple = document.createElement('div');
-    ripple.style.cssText = `
-      position: fixed;
-      left: ${x}px;
-      top: ${y}px;
-      width: 10px;
-      height: 10px;
-      border: 1.5px solid rgba(181, 74, 42, 0.8);
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-      z-index: 998;
-      animation: rippleOut 0.9s ease-out forwards;
-    `;
-    document.body.appendChild(ripple);
-    setTimeout(() => ripple.remove(), 900);
-
-    // 临时粒子爆发
-    for (let i = 0; i < 12; i++) {
-      const angle = (Math.PI * 2 * i) / 12;
-      const speed = Math.random() * 3 + 2;
-      particles.push({
-        x: x,
-        y: y,
-        r: Math.random() * 2 + 1,
-        vy: Math.sin(angle) * speed,
-        vx: Math.cos(angle) * speed,
-        sway: 0,
-        swaySpeed: 0.02,
-        color: COLORS[Math.floor(Math.random() * COLORS.length)],
-        alpha: 0.9,
-        twinkle: 0,
-        twinkleSpeed: 0.05
-      });
-      // 控制总数，避免无限增长
-      if (particles.length > PARTICLE_COUNT + 60) {
-        particles.shift();
-      }
+  function burstAt(x, y, count, opts) {
+    opts = opts || {};
+    for (let i = 0; i < count; i++) {
+      particles.push(spawnBurst(x, y, {
+        angle: (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.3,
+        minSpeed: opts.minSpeed || 2,
+        maxSpeed: opts.maxSpeed || 7,
+        minR: 1, maxR: 3.5,
+        gravity: opts.gravity != null ? opts.gravity : 0.06,
+        upBias: opts.upBias || 0
+      }));
     }
   }
 
-  // 动态注入 ripple 关键帧
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes rippleOut {
-      0% { width: 10px; height: 10px; opacity: 0.9; border-width: 2px; }
-      100% { width: 220px; height: 220px; opacity: 0; border-width: 0.5px; }
+  // 烟花式：向上喷射后散开
+  function fireworkAt(x, y) {
+    // 上升尾迹
+    for (let i = 0; i < 8; i++) {
+      particles.push(spawnBurst(x, y, {
+        angle: -Math.PI / 2 + (Math.random() - 0.5) * 0.4,
+        minSpeed: 4, maxSpeed: 8,
+        minR: 1, maxR: 2,
+        gravity: 0.12, upBias: 0
+      }));
     }
-  `;
-  document.head.appendChild(style);
+    // 散开
+    setTimeout(() => {
+      burstAt(x, y - 80, 28, { minSpeed: 2, maxSpeed: 6, gravity: 0.07 });
+    }, 300);
+  }
 
-  document.addEventListener('click', (e) => {
-    burstAt(e.clientX, e.clientY);
+  // --------------------------------------------
+  // 开卡流程
+  // --------------------------------------------
+  const key = document.getElementById('key');
+  const card = document.getElementById('card');
+  const lock = document.getElementById('lock');
+  const lockHole = document.getElementById('lockHole');
+  const hint = document.getElementById('hint');
+  const rays = document.getElementById('rays');
+  const flash = document.getElementById('flash');
+  const cardEl = document.getElementById('card');
+
+  let opened = false;
+
+  key.addEventListener('click', () => {
+    if (opened) return;
+    opened = true;
+    openCard();
   });
 
-  // --------------------------------------------
-  // 4. 标题字符：鼠标悬停联动光晕放大
-  // --------------------------------------------
-  const chars = document.querySelectorAll('.title__char');
-  chars.forEach((c) => {
-    c.addEventListener('mouseenter', () => {
-      if (glow && isFinePointer) {
-        glow.style.width = '320px';
-        glow.style.height = '320px';
-      }
-    });
-    c.addEventListener('mouseleave', () => {
-      if (glow && isFinePointer) {
-        glow.style.width = '240px';
-        glow.style.height = '240px';
-      }
-    });
-  });
+  function openCard() {
+    // 1. 隐藏提示
+    hint.classList.add('is-hidden');
+
+    // 2. 钥匙飞向锁孔
+    const keyRect = key.getBoundingClientRect();
+    const lockRect = lockHole.getBoundingClientRect();
+    const keyCx = keyRect.left + keyRect.width / 2;
+    const keyCy = keyRect.top + keyRect.height / 2;
+    const lockCx = lockRect.left + lockRect.width / 2;
+    const lockCy = lockRect.top + lockRect.height / 2;
+
+    const dx = lockCx - keyCx;
+    const dy = lockCy - keyCy;
+
+    key.classList.add('is-flying');
+    const svg = key.querySelector('.key__svg');
+    const aura = key.querySelector('.key__aura');
+
+    // 飞行
+    svg.style.transition = 'transform 0.7s cubic-bezier(0.5, 0, 0.5, 1), filter 0.7s';
+    svg.style.transform = `translate(${dx}px, ${dy}px) scale(0.5) rotate(0deg)`;
+    aura.style.transition = 'opacity 0.4s';
+    aura.style.opacity = '0';
+
+    // 3. 到达后旋转解锁
+    setTimeout(() => {
+      svg.style.transition = 'transform 0.35s ease-in-out';
+      svg.style.transform = `translate(${dx}px, ${dy}px) scale(0.5) rotate(90deg)`;
+    }, 700);
+
+    // 4. 锁孔发光 + 闪光
+    setTimeout(() => {
+      lock.classList.add('is-unlocked');
+      // 锁孔位置小爆发
+      burstAt(lockCx, lockCy, 16, { minSpeed: 1.5, maxSpeed: 4, gravity: 0.05 });
+    }, 1050);
+
+    // 5. 钥匙淡出
+    setTimeout(() => {
+      key.style.transition = 'opacity 0.4s';
+      key.style.opacity = '0';
+    }, 1150);
+
+    // 6. 贺卡翻开 + 大特效
+    setTimeout(() => {
+      card.classList.add('is-open');
+
+      // 贺卡中心
+      const cardRect = cardEl.getBoundingClientRect();
+      const cx = cardRect.left + cardRect.width / 2;
+      const cy = cardRect.top + cardRect.height / 2;
+
+      // 闪光
+      flash.classList.add('is-active');
+      setTimeout(() => flash.classList.remove('is-active'), 800);
+
+      // 光线放射
+      rays.classList.add('is-active');
+      setTimeout(() => rays.classList.remove('is-active'), 1700);
+
+      // 主爆发：从贺卡中心向四周
+      burstAt(cx, cy, 50, { minSpeed: 3, maxSpeed: 9, gravity: 0.05 });
+
+      // 二次爆发（稍迟）
+      setTimeout(() => {
+        burstAt(cx, cy, 30, { minSpeed: 2, maxSpeed: 6, gravity: 0.04 });
+      }, 250);
+
+      // 烟花（左右各一）
+      setTimeout(() => {
+        fireworkAt(cx - 140, cy - 60);
+      }, 400);
+      setTimeout(() => {
+        fireworkAt(cx + 140, cy - 60);
+      }, 550);
+      setTimeout(() => {
+        fireworkAt(cx, cy - 120);
+      }, 750);
+
+      // 持续小喷发
+      let pulseCount = 0;
+      const pulseTimer = setInterval(() => {
+        burstAt(cx, cy, 12, { minSpeed: 1.5, maxSpeed: 4, gravity: 0.05 });
+        pulseCount++;
+        if (pulseCount >= 4) clearInterval(pulseTimer);
+      }, 400);
+    }, 1300);
+  }
 
   // --------------------------------------------
-  // 5. 视差：背景光环跟随鼠标轻微移动
+  // 视差：背景跟随鼠标
   // --------------------------------------------
-  const rings = document.querySelector('.bg-rings');
-  const sun = document.querySelector('.bg-sun');
+  const ringsBg = document.querySelector('.bg-rings');
+  const sunBg = document.querySelector('.bg-sun');
   if (isFinePointer && !reduceMotion) {
-    window.addEventListener('mousemove', (e) => {
-      const x = (e.clientX / window.innerWidth - 0.5) * 2;
-      const y = (e.clientY / window.innerHeight - 0.5) * 2;
-      if (rings) {
-        rings.style.transform = `translate(calc(-50% + ${x * 18}px), calc(-50% + ${y * 18}px))`;
-      }
-      if (sun) {
-        sun.style.transform = `translateX(calc(-50% + ${x * 30}px)) translateY(${y * 20}px)`;
-      }
+    addEventListener('mousemove', (e) => {
+      const x = (e.clientX / innerWidth - 0.5) * 2;
+      const y = (e.clientY / innerHeight - 0.5) * 2;
+      if (ringsBg) ringsBg.style.transform = `translate(calc(-50% + ${x * 18}px), calc(-50% + ${y * 18}px))`;
+      if (sunBg) sunBg.style.transform = `translateX(calc(-50% + ${x * 30}px)) translateY(${y * 20}px)`;
     });
   }
 
   // --------------------------------------------
-  // 6. 控制台彩蛋
+  // 控制台彩蛋
   // --------------------------------------------
-  console.log(
-    '%c父亲节快乐。',
-    'font-size: 22px; font-weight: bold; color: #b54a2a; font-family: serif; padding: 8px;'
-  );
-  console.log(
-    '%c2026.06.21',
-    'font-size: 12px; color: #9c5410; font-family: monospace; letter-spacing: 0.2em; padding: 4px;'
-  );
+  console.log('%c父亲节快乐。', 'font-size: 22px; font-weight: bold; color: #b54a2a; font-family: serif; padding: 8px;');
+  console.log('%c2026.06.21', 'font-size: 12px; color: #9c5410; font-family: monospace; letter-spacing: 0.2em; padding: 4px;');
 })();

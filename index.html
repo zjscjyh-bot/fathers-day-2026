@@ -11,66 +11,95 @@
 </head>
 <body>
 
-<!-- 噪点纹理叠加层 -->
+<!-- 噪点纹理 -->
 <div class="grain"></div>
 
-<!-- 鼠标光晕跟随 -->
+<!-- 鼠标光晕 -->
 <div class="cursor-glow" id="cursorGlow"></div>
 
-<!-- 背景画布：粒子 -->
+<!-- 背景粒子画布 -->
 <canvas class="particles" id="particles"></canvas>
 
-<!-- 背景装饰光环 -->
-<div class="bg-rings">
-  <span></span><span></span><span></span><span></span><span></span>
-</div>
-
-<!-- 背景暖阳 -->
-<div class="bg-sun"></div>
-
-<!-- 流动渐变层 -->
+<!-- 背景装饰层 -->
 <div class="bg-aurora"></div>
+<div class="bg-sun"></div>
+<div class="bg-rings"><span></span><span></span><span></span><span></span><span></span></div>
 
-<!-- 顶部细信息 -->
+<!-- 开卡光线放射 -->
+<div class="rays" id="rays"></div>
+<div class="flash" id="flash"></div>
+
+<!-- 四角元信息 -->
 <div class="meta meta--tl">06 · 21 · 2026</div>
 <div class="meta meta--tr">FATHER'S DAY</div>
 <div class="meta meta--bl">No. 21</div>
 <div class="meta meta--br">A quiet note</div>
 
-<!-- 主体 -->
-<main class="stage">
+<!-- 贺卡场景 -->
+<section class="scene" id="scene">
 
-  <!-- 装饰边角 -->
-  <span class="corner corner--tl"></span>
-  <span class="corner corner--tr"></span>
-  <span class="corner corner--bl"></span>
-  <span class="corner corner--br"></span>
-
-  <!-- 副标 -->
-  <p class="eyebrow" id="eyebrow">
-    <span class="eyebrow__line"></span>
-    <span class="eyebrow__text">2026 · 六月第三个星期日</span>
-    <span class="eyebrow__line"></span>
+  <!-- 提示 -->
+  <p class="hint" id="hint">
+    <span class="hint__line"></span>
+    <span class="hint__text">点击钥匙 · 打开贺卡</span>
+    <span class="hint__line"></span>
   </p>
 
-  <!-- 主标题：父亲节快乐 -->
-  <h1 class="title" id="title">
-    <span class="title__char" style="--i:0">父</span>
-    <span class="title__char" style="--i:1">亲</span>
-    <span class="title__char" style="--i:2">节</span>
-    <span class="title__char title__char--accent" style="--i:3">快</span>
-    <span class="title__char" style="--i:4">乐</span>
-  </h1>
+  <!-- 贺卡 -->
+  <div class="card" id="card">
+    <!-- 下半（固定 · 内页，合上时被遮挡） -->
+    <div class="card__bottom">
+      <div class="card__inside">
+        <p class="card__inside-eyebrow">2026 · 六月第三个星期日</p>
+        <h1 class="card__title" id="cardTitle">
+          <span class="title__char" style="--i:0">父</span>
+          <span class="title__char" style="--i:1">亲</span>
+          <span class="title__char" style="--i:2">节</span>
+          <span class="title__char title__char--accent" style="--i:3">快</span>
+          <span class="title__char" style="--i:4">乐</span>
+        </h1>
+        <div class="card__underline"><span></span><i></i><span></span></div>
+        <p class="card__inside-foot">— 2026.06.21 —</p>
+      </div>
+    </div>
 
-  <!-- 标题下的装饰线 -->
-  <div class="underline" id="underline">
-    <span></span><span></span><span></span>
+    <!-- 上半（翻开） -->
+    <div class="card__top" id="cardTop">
+      <!-- 封面（合上时朝外） -->
+      <div class="card__cover">
+        <div class="card__cover-frame"></div>
+        <p class="card__cover-eyebrow">TO · FATHER</p>
+        <h2 class="card__cover-title">致 · 父亲</h2>
+        <div class="card__cover-seal">✦</div>
+        <p class="card__cover-date">2026 · 06 · 21</p>
+        <!-- 锁 -->
+        <div class="card__lock" id="lock">
+          <div class="card__lock-ring"></div>
+          <div class="card__lock-hole" id="lockHole"></div>
+          <div class="card__lock-glow" id="lockGlow"></div>
+        </div>
+      </div>
+      <!-- 封面背面（翻开后朝外） -->
+      <div class="card__cover-back">
+        <div class="card__back-deco">❦</div>
+        <p class="card__back-quote">A quiet note<br>for you</p>
+      </div>
+    </div>
   </div>
 
-  <!-- 心跳脉冲 -->
-  <div class="pulse-ring" id="pulseRing"></div>
+  <!-- 钥匙 -->
+  <button class="key" id="key" type="button" aria-label="打开贺卡">
+    <span class="key__aura"></span>
+    <svg class="key__svg" viewBox="0 0 120 60" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="22" cy="30" r="15" fill="none" stroke="currentColor" stroke-width="4"/>
+      <circle cx="22" cy="30" r="5" fill="currentColor"/>
+      <line x1="37" y1="30" x2="105" y2="30" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      <line x1="92" y1="30" x2="92" y2="44" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      <line x1="102" y1="30" x2="102" y2="40" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+    </svg>
+  </button>
 
-</main>
+</section>
 
 <script src="script.js"></script>
 </body>

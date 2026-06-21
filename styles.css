@@ -251,7 +251,8 @@ body {
   z-index: 3;
 }
 .card.is-open .card__top {
-  transform: rotateX(-175deg);
+  transform: rotateX(-178deg) translateZ(-2px);
+  z-index: 0;
 }
 
 .card__cover,
@@ -415,10 +416,10 @@ body {
   .meta--tl, .meta--bl { left: 1rem; }
   .meta--tr, .meta--br { right: 1rem; }
   .scene { gap: 1.8rem; padding: 1.5rem; }
-  .card { width: 280px; height: 380px; }
-  .card__title { font-size: 2.4rem; }
-  .card__cover-title { font-size: 1.5rem; }
-  .card__inside { padding: 1.8rem 1.4rem; }
+  .card { width: 320px; height: 440px; }
+  .card__title { font-size: 2.8rem; }
+  .card__cover-title { font-size: 1.7rem; }
+  .card__inside { padding: 2rem 1.6rem; }
   .hint { font-size: 0.64rem; }
   .hint__line { width: 28px; }
 }

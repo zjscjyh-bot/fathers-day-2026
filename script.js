@@ -1,5 +1,5 @@
 // ============================================
-// 父亲节快乐 · 2026 · 贺卡版交互
+// 父亲节快乐 · 2026 · 点击贺卡翻开
 // ============================================
 
 (function () {
@@ -29,7 +29,7 @@
   }
 
   // --------------------------------------------
-  // 粒子系统（统一：飘升光点 + 爆发粒子）
+  // 粒子系统
   // --------------------------------------------
   const canvas = document.getElementById('particles');
   const ctx = canvas.getContext('2d');
@@ -65,8 +65,7 @@
       alpha: Math.random() * 0.5 + 0.2,
       twinkle: Math.random() * Math.PI * 2,
       twinkleSpeed: Math.random() * 0.04 + 0.01,
-      gravity: 0,
-      decay: 0
+      gravity: 0, decay: 0
     };
   }
 
@@ -83,8 +82,7 @@
       alpha: 1,
       decay: Math.random() * 0.012 + 0.006,
       gravity: opts.gravity != null ? opts.gravity : 0.08,
-      sway: 0, swaySpeed: 0,
-      twinkle: 0, twinkleSpeed: 0
+      sway: 0, swaySpeed: 0, twinkle: 0, twinkleSpeed: 0
     };
   }
 
@@ -97,7 +95,6 @@
     ctx.clearRect(0, 0, W, H);
     for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i];
-
       if (p.type === 'float') {
         p.sway += p.swaySpeed;
         p.twinkle += p.twinkleSpeed;
@@ -144,9 +141,6 @@
     addEventListener('resize', () => { resize(); initFloat(); });
   }
 
-  // --------------------------------------------
-  // 爆发：从某点向四周喷射粒子
-  // --------------------------------------------
   function burstAt(x, y, count, opts) {
     opts = opts || {};
     for (let i = 0; i < count; i++) {
@@ -161,9 +155,7 @@
     }
   }
 
-  // 烟花式：向上喷射后散开
   function fireworkAt(x, y) {
-    // 上升尾迹
     for (let i = 0; i < 8; i++) {
       particles.push(spawnBurst(x, y, {
         angle: -Math.PI / 2 + (Math.random() - 0.5) * 0.4,
@@ -172,27 +164,26 @@
         gravity: 0.12, upBias: 0
       }));
     }
-    // 散开
     setTimeout(() => {
       burstAt(x, y - 80, 28, { minSpeed: 2, maxSpeed: 6, gravity: 0.07 });
     }, 300);
   }
 
   // --------------------------------------------
-  // 开卡流程
+  // 开卡流程：点击贺卡直接翻开
   // --------------------------------------------
-  const key = document.getElementById('key');
   const card = document.getElementById('card');
-  const lock = document.getElementById('lock');
-  const lockHole = document.getElementById('lockHole');
   const hint = document.getElementById('hint');
   const rays = document.getElementById('rays');
   const flash = document.getElementById('flash');
-  const cardEl = document.getElementById('card');
+  const insideEyebrow = document.getElementById('insideEyebrow');
+  const cardUnderline = document.getElementById('cardUnderline');
+  const insideFoot = document.getElementById('insideFoot');
+  const titleChars = document.querySelectorAll('.title__char');
 
   let opened = false;
 
-  key.addEventListener('click', () => {
+  card.addEventListener('click', () => {
     if (opened) return;
     opened = true;
     openCard();
@@ -202,90 +193,55 @@
     // 1. 隐藏提示
     hint.classList.add('is-hidden');
 
-    // 2. 钥匙飞向锁孔
-    const keyRect = key.getBoundingClientRect();
-    const lockRect = lockHole.getBoundingClientRect();
-    const keyCx = keyRect.left + keyRect.width / 2;
-    const keyCy = keyRect.top + keyRect.height / 2;
-    const lockCx = lockRect.left + lockRect.width / 2;
-    const lockCy = lockRect.top + lockRect.height / 2;
+    // 2. 贺卡翻开
+    card.classList.add('is-open');
 
-    // 钥匙齿尖对准锁孔（钥匙整体偏移，让齿端落入锁孔）
-    const dx = lockCx - keyCx;
-    const dy = lockCy - keyCy;
+    const cardRect = card.getBoundingClientRect();
+    const cx = cardRect.left + cardRect.width / 2;
+    const cy = cardRect.top + cardRect.height / 2;
 
-    key.classList.add('is-flying');
-    const svg = key.querySelector('.key__svg');
-    const aura = key.querySelector('.key__aura');
-    const label = key.querySelector('.key__label');
+    // 3. 翻开瞬间特效
+    flash.classList.add('is-active');
+    setTimeout(() => flash.classList.remove('is-active'), 900);
 
-    // 飞行：钥匙飞向锁孔，缩小并摆正
-    svg.style.transition = 'transform 0.8s cubic-bezier(0.5, 0, 0.5, 1), filter 0.8s';
-    svg.style.transform = `translate(${dx}px, ${dy}px) scale(0.55) rotate(0deg)`;
-    aura.style.transition = 'opacity 0.5s';
-    aura.style.opacity = '0';
-    label.style.transition = 'opacity 0.4s';
-    label.style.opacity = '0';
+    rays.classList.add('is-active');
+    setTimeout(() => rays.classList.remove('is-active'), 1800);
 
-    // 3. 到达后旋转解锁
-    setTimeout(() => {
-      svg.style.transition = 'transform 0.4s ease-in-out';
-      svg.style.transform = `translate(${dx}px, ${dy}px) scale(0.55) rotate(90deg)`;
-    }, 800);
+    // 主爆发
+    burstAt(cx, cy, 60, { minSpeed: 3, maxSpeed: 10, gravity: 0.05 });
+    setTimeout(() => burstAt(cx, cy, 35, { minSpeed: 2, maxSpeed: 7, gravity: 0.04 }), 300);
 
-    // 4. 锁孔发光 + 小爆发
-    setTimeout(() => {
-      lock.classList.add('is-unlocked');
-      burstAt(lockCx, lockCy, 18, { minSpeed: 1.5, maxSpeed: 4, gravity: 0.05 });
-    }, 1200);
+    // 烟花
+    setTimeout(() => fireworkAt(cx - 150, cy - 80), 450);
+    setTimeout(() => fireworkAt(cx + 150, cy - 80), 600);
+    setTimeout(() => fireworkAt(cx, cy - 140), 800);
 
-    // 5. 钥匙淡出
-    setTimeout(() => {
-      key.style.transition = 'opacity 0.5s';
-      key.style.opacity = '0';
-    }, 1300);
+    // 持续小喷发
+    let pulseCount = 0;
+    const pulseTimer = setInterval(() => {
+      burstAt(cx, cy, 14, { minSpeed: 1.5, maxSpeed: 4, gravity: 0.05 });
+      pulseCount++;
+      if (pulseCount >= 5) clearInterval(pulseTimer);
+    }, 450);
 
-    // 6. 贺卡翻开 + 大特效
-    setTimeout(() => {
-      card.classList.add('is-open');
-
-      const cardRect = cardEl.getBoundingClientRect();
-      const cx = cardRect.left + cardRect.width / 2;
-      const cy = cardRect.top + cardRect.height / 2;
-
-      // 闪光
-      flash.classList.add('is-active');
-      setTimeout(() => flash.classList.remove('is-active'), 900);
-
-      // 光线放射
-      rays.classList.add('is-active');
-      setTimeout(() => rays.classList.remove('is-active'), 1800);
-
-      // 主爆发：从贺卡中心向四周
-      burstAt(cx, cy, 60, { minSpeed: 3, maxSpeed: 10, gravity: 0.05 });
-
-      // 二次爆发（稍迟）
+    // 4. 逐字显示"父亲节快乐"（用 transition + class，永久保留）
+    // 翻开动画 1.5s，等翻开过半开始显字
+    titleChars.forEach((ch) => {
+      const i = parseInt(ch.dataset.i, 10);
+      const delay = 700 + i * 130; // 0.7s 开始，每字间隔 0.13s
       setTimeout(() => {
-        burstAt(cx, cy, 35, { minSpeed: 2, maxSpeed: 7, gravity: 0.04 });
-      }, 300);
+        ch.classList.add('is-shown');
+      }, delay);
+    });
 
-      // 烟花（左右各一 + 顶部）
-      setTimeout(() => fireworkAt(cx - 150, cy - 80), 450);
-      setTimeout(() => fireworkAt(cx + 150, cy - 80), 600);
-      setTimeout(() => fireworkAt(cx, cy - 140), 800);
-
-      // 持续小喷发
-      let pulseCount = 0;
-      const pulseTimer = setInterval(() => {
-        burstAt(cx, cy, 14, { minSpeed: 1.5, maxSpeed: 4, gravity: 0.05 });
-        pulseCount++;
-        if (pulseCount >= 5) clearInterval(pulseTimer);
-      }, 450);
-    }, 1450);
+    // 5. 副标、下划线、日期依次显示
+    setTimeout(() => insideEyebrow.classList.add('is-shown'), 600);
+    setTimeout(() => cardUnderline.classList.add('is-shown'), 700 + titleChars.length * 130 + 200);
+    setTimeout(() => insideFoot.classList.add('is-shown'), 700 + titleChars.length * 130 + 400);
   }
 
   // --------------------------------------------
-  // 视差：背景跟随鼠标
+  // 视差
   // --------------------------------------------
   const ringsBg = document.querySelector('.bg-rings');
   const sunBg = document.querySelector('.bg-sun');
